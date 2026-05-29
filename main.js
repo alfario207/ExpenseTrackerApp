@@ -8,6 +8,7 @@
 // TODO [Basic] Buat variabel array untuk menyimpan semua data transaksi, contoh: let transactions = []
 
 let transaction = JSON.parse(localStorage.getItem('transaction')) || []
+let editId = null
 
 // TODO [Basic] Buat fungsi untuk menghasilkan ID unik secara otomatis, contoh: gunakan +new Date()
 
@@ -91,6 +92,11 @@ function render() {
         edit.classList.add('tracker-transaction-item__btn')
         edit.innerText = 'Edit'
 
+        edit.addEventListener('click', () => {
+            editTransaction(item)
+            console.log('clicked', editTransaction)
+        })
+
         const del = document.createElement('button')
         del.setAttribute('data-testid', 'transactionItemDeleteButton')
         del.classList.add('tracker-transaction-item__btn')
@@ -130,6 +136,11 @@ function render() {
 
     income.innerText = `Rp ${totalIncome.toLocaleString('id-ID')}`
     expense.innerText = `Rp ${totalExpense.toLocaleString('id-ID')}`
+
+    const submitBtn = document.querySelector('#transactionForm button')
+    
+    submitBtn && (submitBtn.innerText = editId !== null ? 'Update' : 'Simpan')
+    
 }
 
 // TODO [Basic] Tambahkan event listener 'submit' pada form, panggil e.preventDefault() di dalamnyao
@@ -145,16 +156,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = document.getElementById('transactionFormDateInput').value
         const type = document.getElementById('transactionFormTypeSelect').value
 
-        const newTransaction = {
-            id: generateId(),
-            title: title,
-            amount: amount,
-            date: date,
-            type: type            
+        if (editId !== null) {
+            transaction = transaction.map((item) => {
+                if (item.id === editId) {
+                    item.title = title
+                    item.amount = amount
+                    item.date = date
+                    item.type = type
+                }
+                return item
+            })
+            editId = null
+        } else {
+            const newTransaction = {
+                id: generateId(),
+                title: title,
+                amount: amount,
+                date: date,
+                type: type            
+            }
+            transaction.push(newTransaction) 
         }
 
-        transaction.push(newTransaction)
         saveData()
+        transactionForm.reset()
         console.log("data", transaction)
         render()
     })
@@ -209,6 +234,17 @@ function deleteTransaction(id) {
  *  - Pengguna dapat mengubah data lalu menyimpan perubahan.
  *  - Formulir kembali ke mode "Tambah" setelah pembaruan selesai.
  */
+
+function editTransaction(item) {
+    editId = item.id
+
+    document.getElementById('transactionFormTitleInput').value = item.title
+    document.getElementById('transactionFormAmountInput').value = item.amount
+    document.getElementById('transactionFormDateInput').value = item.date
+    document.getElementById('transactionFormTypeSelect').value = item.type
+
+    render()
+}
 
 /**
  * TODO [Advanced]:
